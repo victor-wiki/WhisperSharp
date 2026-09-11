@@ -1,0 +1,93 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PackageId>victor-wiki.$(AssemblyName)</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>victor-wiki</Authors>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <Description>Convert audio to text, it's C# version of OpenAI Whisper. Currently, it only supports cpu.</Description>
+    <RepositoryUrl>https://github.com/victor-wiki/WhisperSharp</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\gpt2.tiktoken" />
+    <None Remove="Assets\mel_128.npy" />
+    <None Remove="Assets\mel_80.npy" />
+    <None Remove="Assets\multilingual.tiktoken" />
+    <None Remove="Config\base.en.json" />
+    <None Remove="Config\base.json" />
+    <None Remove="Config\small.en.json" />
+    <None Remove="Config\small.json" />
+    <None Remove="Config\tiny.en.json" />
+    <None Remove="Config\tiny.json" />
+    <None Remove="Data\README.txt" />
+    <None Remove="libsndfile.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\gpt2.tiktoken">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Assets\mel_128.npy">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Assets\mel_80.npy">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Assets\multilingual.tiktoken">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Config\base.en.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Config\base.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Config\small.en.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Config\small.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Config\tiny.en.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Config\tiny.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="Data\README.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="libsndfile.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>lib\net10.0</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FFMpegCore" Version="5.4.0" />
+    <PackageReference Include="NAudio" Version="3.1.0" />
+    <PackageReference Include="NAudio.SoundFile" Version="3.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NumSharp" Version="0.70.0" />
+    <PackageReference Include="TiktokenSharp" Version="1.2.1" />
+    <PackageReference Include="victor-wiki.TorchSharp" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="WhisperSharp.WinApp/WhisperSharp.WinApp.csproj" Id="e65e7e5a-d34c-4ced-abb0-d9b0dd8ea9ae" />
+  <Project Path="WhisperSharp/WhisperSharp.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>
