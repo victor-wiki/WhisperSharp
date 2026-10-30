@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using NumSharp;
+using SharpUtility.Helper;
 using TorchSharp;
 using WhisperSharp.Helper;
 using WhisperSharp.Model;
@@ -396,7 +397,7 @@ namespace WhisperSharp
                     };
 
                     Tensor timestamp_tokens = tokens.ge(tokenizer.timestamp_begin);
-                    var single_timestamp_ending = ArrayHelper.GetBoolArray(timestamp_tokens[^2..].tolist()).SequenceEqual([false, true]);
+                    var single_timestamp_ending = TorchHelper.GetBoolArray(timestamp_tokens[^2..].tolist()).SequenceEqual([false, true]);
 
                     var consecutive = torch.where(timestamp_tokens[..^1] & timestamp_tokens[1..])[0];
                     consecutive.add_(1);
@@ -404,7 +405,7 @@ namespace WhisperSharp
                     if (consecutive.shape[0] > 0)
                     {
                         // if the output contains two consecutive timestamp tokens
-                        var slices = ArrayHelper.GetInt32Array(consecutive.tolist()).ToList();
+                        var slices = TorchHelper.GetInt32Array(consecutive.tolist()).ToList();
 
                         if (single_timestamp_ending)
                         {
@@ -536,7 +537,7 @@ namespace WhisperSharp
                             // by silence or more hallucinations
                             var hal_last_end = last_speech_timestamp;
 
-                            foreach (var si in ArrayHelper.GetRange(current_segments.Count))
+                            foreach (var si in RangeHelper.GetRange(current_segments.Count))
                             {
                                 var segment = current_segments[si];
 
@@ -659,7 +660,7 @@ namespace WhisperSharp
 
         public Dictionary<string, dynamic> new_segment(float start, float end, long seek, Tensor tokens, Tokenizer tokenizer, DecodingResult result)
         {
-            var tokenList = ArrayHelper.GetInt32Array(tokens.tolist()).ToList();
+            var tokenList = TorchHelper.GetInt32Array(tokens.tolist()).ToList();
             var text_tokens = tokenList.Where(item => item < tokenizer.eot).ToList();
             var text = tokenizer.decode(text_tokens);
 

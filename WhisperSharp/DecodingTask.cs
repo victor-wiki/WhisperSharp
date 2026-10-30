@@ -289,7 +289,7 @@ namespace WhisperSharp
                     if (i == 0 && this.tokenizer.no_speech != null) //save no_speech_probs
                     {
                         var probs_at_sot = logits[TensorIndex.Colon, this.sot_index].@float().softmax(dim: -1);
-                        no_speech_probs = ArrayHelper.GetFloatArray(probs_at_sot[TensorIndex.Colon, this.tokenizer.no_speech.Value].tolist()).ToList();
+                        no_speech_probs = TorchHelper.GetFloatArray(probs_at_sot[TensorIndex.Colon, this.tokenizer.no_speech.Value].tolist()).ToList();
                     }
 
                     //now we need to consider the logits at the last token only
@@ -364,7 +364,7 @@ namespace WhisperSharp
 
             // reshape the tensors to have (n_audio, n_group) as the first two dimensions
             audio_features = audio_features.GetStepOnes(this.n_group);
-            no_speech_probs = ArrayHelper.GetStepOnes(no_speech_probs, this.n_group).ToList();
+            no_speech_probs = TorchHelper.GetStepOnes(no_speech_probs, this.n_group).ToList();
 
             tokens = tokens.reshape(n_audio, this.n_group, -1);
             sum_logprobs = sum_logprobs.reshape(n_audio, this.n_group);
@@ -427,7 +427,7 @@ namespace WhisperSharp
             {
                 var i = selected[k];
 
-                tokenIds.Add(ArrayHelper.GetInt32Array(token[i].tolist()).ToList());
+                tokenIds.Add(TorchHelper.GetInt32Array(token[i].tolist()).ToList());
 
                 k++;
             }

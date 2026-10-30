@@ -1,4 +1,5 @@
 ﻿using NumSharp;
+using SharpUtility.Helper;
 using System.Collections;
 using TorchSharp;
 using WhisperSharp.Helper;
@@ -166,7 +167,7 @@ namespace WhisperSharp.Decoder
                     {
                         var j = array[k].GetValue<int>();
 
-                        var seq = Enumerable.Concat(ArrayHelper.GetInt32Array(preceding_tokens[i, j].tolist()), new int[] { this.eot });
+                        var seq = Enumerable.Concat(TorchHelper.GetInt32Array(preceding_tokens[i, j].tolist()), new int[] { this.eot });
 
                         string key = string.Join(",", seq);
 
@@ -192,7 +193,7 @@ namespace WhisperSharp.Decoder
 
                 foreach(var key in keys)
                 {
-                    var array = ArrayHelper.GetIntArray(key);
+                    var array = TorchHelper.GetIntArray(key);
 
                     Tensor t = torch.tensor(array);
 

@@ -1,5 +1,6 @@
 using DatabaseManager.Core;
 using OpenccNetLib;
+using SharpUtility.Helper;
 using System.ComponentModel;
 using TorchSharp;
 using WhisperSharp.Helper;
@@ -45,6 +46,7 @@ namespace WhisperSharp.WinApp
             this.Reset();
 
             this.txtText.Text = "processing...";
+            this.btnConvert.Enabled = false;
 
             var language = this.cboLanguage.Text;
             string device = "cpu";
@@ -107,6 +109,10 @@ namespace WhisperSharp.WinApp
                 MessageBox.Show(ex.Message);
 
                 this.Reset();
+            }
+            finally
+            {
+                this.btnConvert.Enabled = true;
             }
         }
 

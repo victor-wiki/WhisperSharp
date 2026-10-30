@@ -1,12 +1,5 @@
 ﻿using DatabaseManager.Core;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using WhisperSharp.Helper;
+using SharpUtility.Helper;
 
 namespace WhisperSharp.WinApp
 {

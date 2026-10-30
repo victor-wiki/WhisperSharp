@@ -1,4 +1,5 @@
 ﻿using NumSharp;
+using SharpUtility.Helper;
 using TorchSharp;
 using WhisperSharp.Helper;
 using WhisperSharp.Model;
@@ -71,7 +72,7 @@ namespace WhisperSharp
 
             List<Dictionary<string, dynamic>> language_probs = new List<Dictionary<string,dynamic>>();
 
-            foreach (var i in ArrayHelper.GetRange((int)n_audio))
+            foreach (var i in RangeHelper.GetRange((int)n_audio))
             {
                 Dictionary<string, dynamic> dict = new Dictionary<string, dynamic>();
 

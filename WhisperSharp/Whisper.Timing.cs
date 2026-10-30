@@ -1,4 +1,5 @@
 ﻿using NumSharp;
+using SharpUtility.Helper;
 using TorchSharp;
 using WhisperSharp.Extension;
 using WhisperSharp.Helper;
@@ -166,7 +167,7 @@ namespace WhisperSharp
             // install hooks on the cross attention layers to retrieve the attention weights
             List<Tensor> qkList = new List<Tensor>();
 
-            foreach (var _ in ArrayHelper.GetRange(this.dims.n_text_layer))
+            foreach (var _ in RangeHelper.GetRange(this.dims.n_text_layer))
             {
                 qkList.Add(null);
             }
@@ -214,7 +215,7 @@ namespace WhisperSharp
                      TensorIndex.Tensor(text_tokens.ToArray())  // for second tensor dimension (column)
                 };
 
-                text_token_probs = ArrayHelper.GetFloatArray(token_probs[indices].tolist());
+                text_token_probs = TorchHelper.GetFloatArray(token_probs[indices].tolist());
 
                 MultiHeadAttention.use_sdpa = prev_state;
             }
@@ -314,7 +315,7 @@ namespace WhisperSharp
                 return dtw_cuda(x);
             }
 
-            var array = ArrayHelper.GetDouble2DimensonArray(x.@double().cpu().tolist());
+            var array = TorchHelper.GetDouble2DimensonArray(x.@double().cpu().tolist());
 
             return dtw_cpu(np.array(array));
         }

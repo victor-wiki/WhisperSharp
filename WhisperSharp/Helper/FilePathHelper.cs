@@ -2,14 +2,14 @@
 
 namespace WhisperSharp.Helper
 {
-    public class PathHelper
+    public class FilePathHelper
     {
         public static string Location => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         public static string AssetsFolder => Path.Combine(Location, "Assets");
         public static string DataFolder => Path.Combine(Location, "Data");
         public static string ConfigFolder => Path.Combine(Location, "Config");
 
-        static PathHelper()
+        static FilePathHelper()
         {
             if(!Directory.Exists(AssetsFolder))
             {

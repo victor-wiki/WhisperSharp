@@ -10,7 +10,7 @@ namespace WhisperSharp.Extension
     {
         public static bool IsNull(this Tensor tensor)
         {
-            return !(tensor is not null) || tensor?.GetType() == null;
+            return tensor is null;
         }
 
         public static string ToNumpyString(this Tensor tensor)

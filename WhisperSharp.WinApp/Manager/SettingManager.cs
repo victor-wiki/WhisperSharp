@@ -7,7 +7,7 @@ namespace DatabaseManager.Core
 {
     public class SettingManager 
     {
-        public static string ConfigRootFolder => PathHelper.ConfigFolder;
+        public static string ConfigRootFolder => FilePathHelper.ConfigFolder;
 
         public static Setting Setting { get; private set; } = new Setting();
 

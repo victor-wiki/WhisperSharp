@@ -1,4 +1,5 @@
 ﻿using NumSharp;
+using SharpUtility.Extension;
 using TiktokenSharp;
 using TiktokenSharp.Model;
 using WhisperSharp.Extension;
@@ -75,7 +76,7 @@ namespace WhisperSharp
 
         public TikToken get_encoding(string name = "gpt2", int num_languages = 99)
         {
-            var vocab_path = PathHelper.GetAssetsFilePath($"{name}.tiktoken");
+            var vocab_path = FilePathHelper.GetAssetsFilePath($"{name}.tiktoken");
 
             var lines = File.ReadAllLines(vocab_path);
 

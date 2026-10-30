@@ -64,7 +64,7 @@ namespace WhisperSharp
     
             var array = np.frombuffer(decompressBytes, dtype: typeof(bool)).copy();
 
-            var boolArray = ArrayHelper.GetBoolListArray(array.tolist());
+            var boolArray = TorchHelper.GetBoolListArray(array.tolist());
 
             var mask = torch.from_array(boolArray).reshape(
                 this.dims.n_text_layer, this.dims.n_text_head
@@ -177,7 +177,7 @@ namespace WhisperSharp
             
             Whisper whisper = null;
 
-            string jsonFilePath = PathHelper.GetConfigFilePath($"{name}.json");
+            string jsonFilePath = FilePathHelper.GetConfigFilePath($"{name}.json");
 
             if (!File.Exists(jsonFilePath))
             {
@@ -192,7 +192,7 @@ namespace WhisperSharp
             Dictionary<string, Tensor> readTensors = new Dictionary<string, Tensor>();
 
             string dataFileName = $"{name}.dat";
-            string datFilePath =!string.IsNullOrEmpty(data_root) ? Path.Combine(data_root, dataFileName): PathHelper.GetDataFilePath(dataFileName);
+            string datFilePath =!string.IsNullOrEmpty(data_root) ? Path.Combine(data_root, dataFileName): FilePathHelper.GetDataFilePath(dataFileName);
 
             if (!File.Exists(datFilePath))
             {

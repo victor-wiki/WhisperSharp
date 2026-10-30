@@ -81,13 +81,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FFMpegCore" Version="5.4.0" />
+    <PackageReference Include="FFMpegCore" Version="5.5.0" />
     <PackageReference Include="NAudio" Version="3.1.0" />
     <PackageReference Include="NAudio.SoundFile" Version="3.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NumSharp" Version="0.70.0" />
     <PackageReference Include="TiktokenSharp" Version="1.2.1" />
-    <PackageReference Include="victor-wiki.TorchSharp" Version="1.0.0" />
+    <PackageReference Include="victor-wiki.SharpUtility" Version="1.0.0" />
+    <PackageReference Include="victor-wiki.TorchSharp" Version="1.0.1" />
   </ItemGroup>
 
 </Project>

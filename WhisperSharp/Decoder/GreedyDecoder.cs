@@ -45,7 +45,7 @@ namespace WhisperSharp.Decoder
         {
             //make sure each sequence has at least one EOT token at the end
             tokens = F.pad(tokens, (0, 1), value: this.eot);
-            return (tokens, ArrayHelper.GetFloatArrayList(sum_logprobs.tolist()));
+            return (tokens, TorchHelper.GetFloatArrayList(sum_logprobs.tolist()));
         }
     }
 }

@@ -4,6 +4,7 @@ using NAudio.SoundFile;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NumSharp;
+using SharpUtility.Helper;
 using TorchSharp;
 using WhisperSharp.Helper;
 using WhisperSharp.Model;
@@ -119,7 +120,7 @@ namespace WhisperSharp
             {
                 if (GetShapeValue(array, axis) > length)
                 {
-                    array = array.take(indices: ArrayHelper.GetRange(length), axis: axis);
+                    array = array.take(indices: RangeHelper.GetRange(length), axis: axis);
                 }
 
                 if (GetShapeValue(array, axis) < length)
@@ -165,7 +166,7 @@ namespace WhisperSharp
         /// <returns></returns>
         public static Tensor mel_filters(string device, int n_mels)
         {
-            var filters_path = PathHelper.GetAssetsFilePath($"mel_{n_mels}.npy");
+            var filters_path = FilePathHelper.GetAssetsFilePath($"mel_{n_mels}.npy");
 
             var arr = np.load(filters_path) as NDArray;
 

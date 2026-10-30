@@ -1,4 +1,5 @@
 ﻿using NumSharp;
+using SharpUtility.Helper;
 using TorchSharp;
 using WhisperSharp.Extension;
 using WhisperSharp.Helper;
@@ -32,7 +33,7 @@ namespace WhisperSharp.Filter
             for (var k = 0; k < tokens.shape[0]; k++)
             {
                 var sampled_tokens = tokens[k, this.sample_begin..];
-                var seq = ArrayHelper.GetInt32Array(sampled_tokens.tolist()).ToList();
+                var seq = TorchHelper.GetInt32Array(sampled_tokens.tolist()).ToList();
                 var last_was_timestamp = seq.Count >= 1 && seq.LastOrDefault() >= this.tokenizer.timestamp_begin;
                 var penultimate_was_timestamp = seq.Count < 2 || seq[seq.Count - 2] >= this.tokenizer.timestamp_begin;
 
@@ -82,7 +83,7 @@ namespace WhisperSharp.Filter
                 {
                     last_allowed = this.tokenizer.timestamp_begin.Value + this.max_initial_timestamp_index.Value;                  
 
-                    logits.UpdateEachRowValue(ArrayHelper.GetRangeLong(logits.shape[1], last_allowed + 1), -np.inf);
+                    logits.UpdateEachRowValue(RangeHelper.GetRange(last_allowed + 1, (int)(logits.shape[1])).Select(item=>(long)item).ToArray(), -np.inf);
                 }
             }
 
