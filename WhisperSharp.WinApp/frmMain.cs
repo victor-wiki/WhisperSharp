@@ -1,10 +1,13 @@
 using DatabaseManager.Core;
+using NAudio.CoreAudioApi;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using OpenccNetLib;
 using SharpUtility.Helper;
-using System.ComponentModel;
 using TorchSharp;
 using WhisperSharp.Helper;
 using WhisperSharp.Model;
+using WhisperSharp.WinApp.Adapter;
 using WhisperSharp.Writer;
 
 namespace WhisperSharp.WinApp
@@ -12,6 +15,19 @@ namespace WhisperSharp.WinApp
     public partial class frmMain : Form
     {
         private string filePath;
+        private const int rate = Audio.SAMPLE_RATE;
+        private const int channels = 1;
+        private IWaveIn captureDevice;
+        private WaveFileWriter writer;
+        private MMDevice device;
+        private string outputFolder => Path.Combine(FilePathHelper.Location, "TEMP");
+        private bool loadingDevices;
+        private bool isRecording;
+        private string tempAudioFileName;
+        private bool devicesChangedWhileRecording;
+        private readonly MMDeviceEnumerator deviceEnumerator = new();
+        private IWavePlayer wavePlayer;
+        private AudioFileReader audioFileReader;
 
         public frmMain()
         {
@@ -27,33 +43,40 @@ namespace WhisperSharp.WinApp
 
         private void Init()
         {
+            if (!Directory.Exists(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+            }
+
             this.cboLanguage.SelectedIndex = 0;
             this.cboModel.SelectedIndex = 0;
             this.cboAudioParser.SelectedIndex = 0;
 
+            this.LoadDevice();
+
             LogHelper.EnableLog = SettingManager.Setting.EnableLog;
-
-            this.bgWorker.DoWork += this.BgWorker_DoWork;
         }
 
-        private void BgWorker_DoWork(object? sender, DoWorkEventArgs e)
-        {
-            this.Convert(this.filePath);
-        }
-
-        private void Convert(string filePath)
+        private void Convert(string filePath, bool isFile = false)
         {
             this.Reset();
 
             this.txtText.Text = "processing...";
-            this.btnConvert.Enabled = false;
 
+            Task.Run(() => this.DoConvert(filePath, isFile));
+        }
+
+        private void DoConvert(string filePath, bool isFile = false)
+        {
             var language = this.cboLanguage.Text;
             string device = "cpu";
             string model = this.cboModel.Text;
             string audioParser = this.cboAudioParser.Text;
             string dataFolder = SettingManager.Setting.DataFolder;
             bool showTimestamps = this.chkShowWordTimestamps.Checked;
+            Button button = isFile ? this.btnConvertFile : this.btnConvertRecording;
+
+            button.BeginInvoke(() => { button.Enabled = false; });
 
             try
             {
@@ -112,7 +135,7 @@ namespace WhisperSharp.WinApp
             }
             finally
             {
-                this.btnConvert.Enabled = true;
+                button.BeginInvoke(() => { button.Enabled = true; });
             }
         }
 
@@ -185,14 +208,8 @@ namespace WhisperSharp.WinApp
             }
         }
 
-        private void btnConvert_Click(object sender, EventArgs e)
+        private void btnConvertFile_Click(object sender, EventArgs e)
         {
-            if (this.bgWorker.IsBusy)
-            {
-                MessageBox.Show("It's processing the selected file, please wait for one moment.");
-                return;
-            }
-
             string filePath = this.txtFilePath.Text;
 
             if (string.IsNullOrEmpty(filePath))
@@ -201,13 +218,317 @@ namespace WhisperSharp.WinApp
                 return;
             }
 
-            this.bgWorker.RunWorkerAsync();
+            this.Convert(filePath, true);
         }
 
         private void tsmiSetting_Click(object sender, EventArgs e)
         {
             frmSetting form = new frmSetting();
             form.ShowDialog();
+        }
+
+        #region Recording
+
+        private void btnStartRecord_Click(object sender, EventArgs e)
+        {
+            this.Cleanup();
+
+            try
+            {
+                this.captureDevice = this.CreateCaptureDevice();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Unable to start recording");
+                return;
+            }
+
+            if (this.device != null)
+            {
+                try
+                {
+                    this.device.AudioEndpointVolume.Mute = false;
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+
+            try
+            {
+                this.tempAudioFileName = $"{Path.GetRandomFileName()}.wav";
+
+                this.writer = new WaveFileWriter(this.GetTempAudioFilePath(), captureDevice.WaveFormat);
+
+                this.captureDevice.StartRecording();
+
+                this.SetControlStates(true);
+            }
+            catch (Exception ex)
+            {
+                this.Cleanup();
+                this.SetControlStates(false);
+
+                MessageBox.Show(ex.Message, "Unable to start recording");
+            }
+        }
+
+        private void btnStopRecord_Click(object sender, EventArgs e)
+        {
+            this.StopRecording();
+        }
+
+        private void btnConvertRecording_Click(object sender, EventArgs e)
+        {
+            string tempFilePath = this.GetTempAudioFilePath();
+
+            if (!File.Exists(tempFilePath))
+            {
+                return;
+            }
+
+            this.Convert(tempFilePath, false);
+        }
+
+        private IWaveIn CreateCaptureDevice()
+        {
+            var requestedFormat = new WaveFormat(rate, channels);
+
+            var builder = new WasapiRecorderBuilder().WithDevice(this.device).WithFormat(requestedFormat);
+
+            IWaveIn device = new WasapiRecorderAdapter(builder.Build());
+
+            device.DataAvailable += OnDataAvailable;
+            device.RecordingStopped += OnRecordingStopped;
+
+            return device;
+        }
+
+        private string GetTempAudioFilePath()
+        {
+            if (this.tempAudioFileName == null)
+            {
+                return null;
+            }
+
+            return Path.Combine(this.outputFolder, this.tempAudioFileName);
+        }
+
+        private void LoadDevice()
+        {
+            this.loadingDevices = true;
+
+            try
+            {
+                var flow = DataFlow.Capture;
+                var devices = this.deviceEnumerator.EnumerateAudioEndPoints(flow, DeviceState.Active).ToArray();
+
+                if (devices.Length > 0)
+                {
+                    try
+                    {
+                        this.device = deviceEnumerator.GetDefaultAudioEndpoint(flow, Role.Console);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Audio Recording Device not found!");
+                    }
+                }
+            }
+            finally
+            {
+                this.loadingDevices = false;
+            }
+
+            this.OnDeviceChanged();
+        }
+
+        private void OnDeviceChanged()
+        {
+            if (this.loadingDevices)
+            {
+                return;
+            }
+
+            this.Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            if (this.captureDevice != null)
+            {
+                this.captureDevice.DataAvailable -= this.OnDataAvailable;
+                this.captureDevice.RecordingStopped -= this.OnRecordingStopped;
+                this.captureDevice.Dispose();
+                this.captureDevice = null;
+            }
+
+            this.FinalizeWaveFile();
+        }
+
+        private void FinalizeWaveFile()
+        {
+            this.writer?.Dispose();
+            this.writer = null;
+        }
+
+        private void OnDataAvailable(object sender, WaveInEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new EventHandler<WaveInEventArgs>(this.OnDataAvailable), sender, e);
+
+                return;
+            }
+
+            if (this.writer == null)
+            {
+                return;
+            }
+
+            this.writer.Write(e.Buffer, 0, e.BytesRecorded);
+
+            int secondsRecorded = (int)(writer.Length / writer.WaveFormat.AverageBytesPerSecond);
+
+            if (secondsRecorded >= 30)
+            {
+                this.StopRecording();
+            }
+            else
+            {
+                this.progressBar1.Value = secondsRecorded;
+            }
+        }
+
+        private void OnRecordingStopped(object sender, StoppedEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new EventHandler<StoppedEventArgs>(OnRecordingStopped), sender, e);
+                return;
+            }
+
+            this.FinalizeWaveFile();
+            this.progressBar1.Value = 0;
+
+            if (e.Exception != null)
+            {
+                this.Cleanup();
+
+                MessageBox.Show($"A problem was encountered during recording: {e.Exception.Message}", "Recording Error");
+            }
+
+            this.SetControlStates(false);
+        }
+
+        private void SetControlStates(bool isRecording)
+        {
+            this.isRecording = isRecording;
+
+            if (!this.isRecording && this.devicesChangedWhileRecording)
+            {
+                this.devicesChangedWhileRecording = false;
+            }
+        }
+
+        private void StopRecording()
+        {
+            this.captureDevice?.StopRecording();
+        }
+
+        private void btnPlay_Click(object sender, EventArgs e)
+        {
+            string filePath = this.GetTempAudioFilePath();
+
+            if (filePath == null)
+            {
+                return;
+            }
+
+            if (File.Exists(filePath))
+            {
+                this.PlayFile(filePath);
+            }
+            else
+            {
+                MessageBox.Show("File not found!");
+            }
+        }
+
+        private void PlayFile(string filePath)
+        {
+            if (this.wavePlayer == null)
+            {
+                this.wavePlayer = new WaveOut();
+
+                this.wavePlayer.PlaybackStopped += this.WavePlayer_PlaybackStopped;
+            }
+
+            this.audioFileReader = new AudioFileReader(filePath);
+
+            var fadeInOut = new FadeInOutSampleProvider(this.audioFileReader);
+
+            this.wavePlayer.Init(fadeInOut);
+            this.wavePlayer.Play();
+        }
+
+        private void WavePlayer_PlaybackStopped(object? sender, StoppedEventArgs e)
+        {
+            this.DisposePlayer();
+        }
+
+        private void DisposePlayer()
+        {
+            try
+            {
+                if (this.wavePlayer != null)
+                {
+                    this.wavePlayer.Stop();
+                    this.wavePlayer.Dispose();
+                    this.wavePlayer = null;
+                }
+
+                if (this.audioFileReader != null)
+                {
+                    this.audioFileReader.Dispose();
+                    this.audioFileReader = null;
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+        #endregion
+
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            this.DisposePlayer();
+
+            if (Directory.Exists(this.outputFolder))
+            {
+                var files = new DirectoryInfo(this.outputFolder).GetFiles();
+
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        file.Delete();
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+            }
+        }
+
+        private void btnPlaySelectedFile_Click(object sender, EventArgs e)
+        {
+            string filePath = this.txtFilePath.Text.Trim();
+
+            if (File.Exists(filePath))
+            {
+                this.PlayFile(filePath);
+            }
         }
     }
 }

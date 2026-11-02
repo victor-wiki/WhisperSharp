@@ -10,7 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="libtorch-cpu-win-x64" Version="2.10.0" />
+    <PackageReference Include="libtorch-cpu" Version="2.10.0" />
+    <PackageReference Include="NAudio" Version="3.3.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.3.0" />
+    <PackageReference Include="NAudio.WinMM" Version="3.3.0" />
     <PackageReference Include="OpenccNetLib" Version="1.6.2" />
   </ItemGroup>
 
